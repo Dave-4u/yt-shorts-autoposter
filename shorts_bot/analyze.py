@@ -1,4 +1,7 @@
-"""Score transcript segments and pick viral clip windows."""
+"""Score transcript segments and pick viral clip windows.
+
+LLM preference (free-first): Groq → Gemini → OpenAI → Anthropic → heuristic.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +11,11 @@ import re
 from dataclasses import asdict, dataclass
 from typing import List, Optional
 
-from shorts_bot.config import Config
+from shorts_bot.config import (
+    GEMINI_OPENAI_BASE_URL,
+    GROQ_BASE_URL,
+    Config,
+)
 from shorts_bot.fetch import TranscriptSegment
 
 log = logging.getLogger(__name__)
@@ -195,20 +202,97 @@ TRANSCRIPT:
 """
 
 
-def analyze_openai(segments: List[TranscriptSegment], cfg: Config) -> List[ClipCandidate]:
+def _chat_completions(
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+    prompt: str,
+) -> str:
+    """OpenAI-compatible chat completions (Groq / Gemini / OpenAI)."""
     from openai import OpenAI
 
-    client = OpenAI(api_key=cfg.openai_api_key, base_url=cfg.openai_base_url)
-    prompt = _llm_prompt(segments, cfg)
+    client = OpenAI(api_key=api_key, base_url=base_url)
     resp = client.chat.completions.create(
-        model=cfg.openai_model,
+        model=model,
         messages=[
             {"role": "system", "content": "You output only JSON arrays. No markdown."},
             {"role": "user", "content": prompt},
         ],
         temperature=0.4,
     )
-    raw = resp.choices[0].message.content or "[]"
+    return resp.choices[0].message.content or "[]"
+
+
+def analyze_openai_compatible(
+    segments: List[TranscriptSegment],
+    cfg: Config,
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> List[ClipCandidate]:
+    prompt = _llm_prompt(segments, cfg)
+    raw = _chat_completions(
+        api_key=api_key, base_url=base_url, model=model, prompt=prompt
+    )
+    return _parse_llm_clips(raw, cfg)
+
+
+def analyze_openai(segments: List[TranscriptSegment], cfg: Config) -> List[ClipCandidate]:
+    return analyze_openai_compatible(
+        segments,
+        cfg,
+        api_key=cfg.openai_api_key,
+        base_url=cfg.openai_base_url,
+        model=cfg.openai_model,
+    )
+
+
+def analyze_groq(segments: List[TranscriptSegment], cfg: Config) -> List[ClipCandidate]:
+    """Groq free tier via OpenAI-compatible API."""
+    return analyze_openai_compatible(
+        segments,
+        cfg,
+        api_key=cfg.groq_api_key,
+        base_url=GROQ_BASE_URL,
+        model=cfg.groq_model,
+    )
+
+
+def analyze_gemini(segments: List[TranscriptSegment], cfg: Config) -> List[ClipCandidate]:
+    """Gemini free tier: OpenAI-compatible endpoint, else google-generativeai."""
+    prompt = _llm_prompt(segments, cfg)
+    # Prefer OpenAI-compatible (uses already-installed openai package)
+    try:
+        raw = _chat_completions(
+            api_key=cfg.gemini_api_key,
+            base_url=GEMINI_OPENAI_BASE_URL,
+            model=cfg.gemini_model,
+            prompt=prompt,
+        )
+        return _parse_llm_clips(raw, cfg)
+    except Exception as e:
+        log.debug("Gemini OpenAI-compatible path failed (%s); trying google-generativeai", e)
+
+    try:
+        import google.generativeai as genai
+    except ImportError as e:
+        raise RuntimeError(
+            "Gemini call failed and google-generativeai is not installed. "
+            "pip install google-generativeai  OR use GROQ_API_KEY instead."
+        ) from e
+
+    genai.configure(api_key=cfg.gemini_api_key)
+    model = genai.GenerativeModel(
+        cfg.gemini_model,
+        system_instruction="You output only JSON arrays. No markdown.",
+    )
+    resp = model.generate_content(
+        prompt,
+        generation_config={"temperature": 0.4},
+    )
+    raw = getattr(resp, "text", None) or "[]"
     return _parse_llm_clips(raw, cfg)
 
 
@@ -270,16 +354,27 @@ def analyze_clips(
     source_duration: float = 0.0,
     force_heuristic: bool = False,
 ) -> List[ClipCandidate]:
-    """Main entry: LLM if keys present, else heuristic."""
+    """Main entry: free LLM if keys present (Groq→Gemini→…), else heuristic."""
     if force_heuristic or not cfg.has_llm or not segments:
         return analyze_heuristic(segments, cfg, source_duration=source_duration)
 
+    resolved = cfg.resolve_llm()
+    if not resolved:
+        return analyze_heuristic(segments, cfg, source_duration=source_duration)
+
+    provider, _key, model = resolved
     try:
-        if cfg.openai_api_key:
-            log.info("Analyzing with OpenAI-compatible model %s", cfg.openai_model)
+        if provider == "groq":
+            log.info("Analyzing with Groq (free) model %s", model)
+            clips = analyze_groq(segments, cfg)
+        elif provider == "gemini":
+            log.info("Analyzing with Gemini (free) model %s", model)
+            clips = analyze_gemini(segments, cfg)
+        elif provider == "openai":
+            log.info("Analyzing with OpenAI-compatible model %s", model)
             clips = analyze_openai(segments, cfg)
         else:
-            log.info("Analyzing with Anthropic model %s", cfg.anthropic_model)
+            log.info("Analyzing with Anthropic model %s", model)
             clips = analyze_anthropic(segments, cfg)
         if clips:
             return clips

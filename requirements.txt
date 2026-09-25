@@ -4,11 +4,13 @@ requests>=2.31.0
 yt-dlp>=2024.8.0
 youtube-transcript-api>=0.6.2
 
-# LLM (optional — heuristic fallback works without these)
+# LLM — openai client also talks to Groq + Gemini (OpenAI-compatible free tiers)
 openai>=1.40.0
 anthropic>=0.34.0
+# Optional native Gemini SDK (fallback if OpenAI-compatible path fails)
+# google-generativeai>=0.8.0
 
-# YouTube upload (OAuth)
+# YouTube upload (OAuth — free personal Google Cloud project)
 google-api-python-client>=2.140.0
 google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0

@@ -25,3 +25,25 @@ def test_analyze_sample_transcript():
         assert cfg.min_clip_seconds - 0.5 <= c.duration <= cfg.max_clip_seconds + 2
         assert c.title
         assert c.end > c.start
+
+
+def test_resolve_llm_prefers_groq():
+    cfg = Config(
+        groq_api_key="gsk_test",
+        gemini_api_key="gem_test",
+        openai_api_key="sk_test",
+        anthropic_api_key="ant_test",
+    )
+    assert cfg.resolve_llm()[0] == "groq"
+    assert cfg.has_llm is True
+
+
+def test_resolve_llm_falls_through_to_gemini():
+    cfg = Config(gemini_api_key="gem_test", openai_api_key="sk_test")
+    assert cfg.resolve_llm()[0] == "gemini"
+
+
+def test_resolve_llm_none_without_keys():
+    cfg = Config()
+    assert cfg.resolve_llm() is None
+    assert cfg.has_llm is False

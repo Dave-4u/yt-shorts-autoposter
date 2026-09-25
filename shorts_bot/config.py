@@ -1,4 +1,7 @@
-"""Configuration loaded from environment / .env file."""
+"""Configuration loaded from environment / .env file.
+
+Free-first defaults: Groq → Gemini → OpenAI → Anthropic → heuristic.
+"""
 
 from __future__ import annotations
 
@@ -16,6 +19,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DOWNLOADS = PROJECT_ROOT / "downloads"
 DEFAULT_OUTPUT = PROJECT_ROOT / "output"
 DEFAULT_TOKENS = PROJECT_ROOT / "tokens"
+
+# Free-tier OpenAI-compatible endpoints
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 CAPTION_STYLES = {
     "bold_yellow": {
@@ -68,10 +75,16 @@ CAPTION_STYLES = {
 @dataclass
 class Config:
     youtube_api_key: str = ""
+    # Free-first LLM keys (preference: groq → gemini → openai → anthropic)
+    groq_api_key: str = ""
+    gemini_api_key: str = ""
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    # Endpoint / model overrides
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4o-mini"
+    groq_model: str = "llama-3.3-70b-versatile"
+    gemini_model: str = "gemini-2.0-flash"
     anthropic_model: str = "claude-3-5-haiku-latest"
     google_client_secrets: str = "client_secrets.json"
     channel_id: str = ""
@@ -91,10 +104,17 @@ class Config:
     def from_env(cls) -> "Config":
         return cls(
             youtube_api_key=os.getenv("YOUTUBE_API_KEY", ""),
+            groq_api_key=os.getenv("GROQ_API_KEY", ""),
+            gemini_api_key=os.getenv("GEMINI_API_KEY", "")
+            or os.getenv("GOOGLE_API_KEY", ""),
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            groq_model=os.getenv(
+                "GROQ_MODEL", "llama-3.3-70b-versatile"
+            ),
+            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
             anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
             google_client_secrets=os.getenv(
                 "GOOGLE_CLIENT_SECRETS", "client_secrets.json"
@@ -119,7 +139,29 @@ class Config:
 
     @property
     def has_llm(self) -> bool:
-        return bool(self.openai_api_key or self.anthropic_api_key)
+        return bool(
+            self.groq_api_key
+            or self.gemini_api_key
+            or self.openai_api_key
+            or self.anthropic_api_key
+        )
+
+    def resolve_llm(self) -> Optional[tuple[str, str, str]]:
+        """Pick first available provider.
+
+        Returns (provider, api_key, model) where provider is one of:
+        groq | gemini | openai | anthropic.
+        Preference: GROQ → GEMINI → OPENAI → ANTHROPIC.
+        """
+        if self.groq_api_key:
+            return ("groq", self.groq_api_key, self.groq_model)
+        if self.gemini_api_key:
+            return ("gemini", self.gemini_api_key, self.gemini_model)
+        if self.openai_api_key:
+            return ("openai", self.openai_api_key, self.openai_model)
+        if self.anthropic_api_key:
+            return ("anthropic", self.anthropic_api_key, self.anthropic_model)
+        return None
 
     def caption_preset(self) -> dict:
         return CAPTION_STYLES.get(self.caption_style, CAPTION_STYLES["bold_yellow"])

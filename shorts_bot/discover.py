@@ -33,8 +33,9 @@ class VideoCandidate:
 def _require_api_key(cfg: Config) -> str:
     if not cfg.youtube_api_key:
         raise RuntimeError(
-            "YOUTUBE_API_KEY is required for discover. "
-            "Set it in .env or pass --url to skip discovery."
+            "YOUTUBE_API_KEY is required for discover/search "
+            "(YouTube Data API v3 free quota ≈ 10k units/day). "
+            "Set it in .env, or pass --url to skip discovery."
         )
     return cfg.youtube_api_key
 
