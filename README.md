@@ -141,14 +141,14 @@ yt-shorts-autoposter/
 ├── tests/
 ├── .env.example
 ├── requirements.txt
-└── .github/workflows/dry-run.yml
+└── ci/dry-run.yml          # copy → .github/workflows/
 ```
 
 ---
 
 ## GitHub Actions
 
-`.github/workflows/dry-run.yml` installs deps and runs:
+`ci/dry-run.yml` (copy to `.github/workflows/` to enable) installs deps and runs:
 
 ```bash
 python -m shorts_bot analyze --heuristic
