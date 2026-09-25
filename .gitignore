@@ -1,0 +1,43 @@
+# Secrets & local state
+.env
+.env.local
+client_secrets.json
+tokens/
+*.token.json
+credentials.json
+
+# Media & pipeline outputs
+downloads/
+output/
+*.mp4
+*.mkv
+*.webm
+*.ass
+*.srt
+*.wav
+*.mp3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+Thumbs.db
+
+# yt-dlp leftovers
+*.info.json
+*.part

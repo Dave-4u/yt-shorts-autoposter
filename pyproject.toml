@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yt-shorts-autoposter"
+version = "1.0.0"
+description = "Turn long-form videos you own into captioned YouTube Shorts"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Dave-4u" }]
+dependencies = [
+  "python-dotenv>=1.0.0",
+  "requests>=2.31.0",
+  "yt-dlp>=2024.8.0",
+  "youtube-transcript-api>=0.6.2",
+  "openai>=1.40.0",
+  "anthropic>=0.34.0",
+  "google-api-python-client>=2.140.0",
+  "google-auth-oauthlib>=1.2.0",
+  "google-auth-httplib2>=0.2.0",
+]
+
+[project.scripts]
+shorts-bot = "shorts_bot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["shorts_bot*"]

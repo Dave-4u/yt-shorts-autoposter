@@ -1,0 +1,40 @@
+name: dry-run
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  analyze-and-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Heuristic analyze (offline)
+        run: python -m shorts_bot analyze --heuristic --out output/ci_clips.json
+
+      - name: Demo render (2 shorts, no upload)
+        run: python -m shorts_bot demo --max-shorts 2
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-shorts
+          path: |
+            output/demo/
+            output/ci_clips.json
+          if-no-files-found: warn
