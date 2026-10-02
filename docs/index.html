@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Studio · yt-shorts-autoposter</title>
+<meta name="description" content="Paste a transcript from a video you own and find the moments that would make good YouTube Shorts. Runs in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2323493a'/><rect x='11' y='6' width='10' height='20' rx='2' fill='%23f3eee2'/><path d='M8 13h16' stroke='%23e4572e' stroke-width='2.5' stroke-dasharray='3 2'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mat:#23493a; --mat-2:#1c3d30; --grid:rgba(243,238,226,.07); --grid-2:rgba(243,238,226,.14);
+  --paper:#f3eee2; --paper-2:#e9e2d1; --ink:#1d1f1a; --ink-2:#4a4d43; --muted:#6c6f63;
+  --tomato:#d9481f; --tomato-ink:#a8340f; --mustard:#e8b931; --line:#d5ccb6;
+  --display:"Bricolage Grotesque",Georgia,serif; --body:"Public Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --r:14px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;font:16px/1.55 var(--body);color:var(--ink);min-height:100vh;
+  background:
+    linear-gradient(var(--grid-2) 1px,transparent 1px) 0 0/100px 100px,
+    linear-gradient(90deg,var(--grid-2) 1px,transparent 1px) 0 0/100px 100px,
+    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/20px 20px,
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/20px 20px,
+    var(--mat);}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mustard);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1320px;margin:0 auto;padding:22px clamp(14px,3vw,32px) 40px}
+header.top{display:flex;align-items:center;gap:14px;color:var(--paper);flex-wrap:wrap}
+.mark{width:42px;height:42px;flex:none}
+.brand b{display:block;font:800 1.55rem/1 var(--display);letter-spacing:-.01em}
+.brand span{font-size:.85rem;opacity:.75}
+.mode{margin-left:auto;font:500 .78rem var(--mono);padding:.4rem .7rem;border-radius:999px;border:1px dashed rgba(243,238,226,.45);color:var(--paper)}
+.mode.live{background:var(--mustard);color:var(--ink);border:0}
+.lede{color:var(--paper);max-width:62ch;margin:18px 0 22px;font-size:1.05rem}
+.lede strong{color:var(--mustard);font-weight:600}
+.legal{display:inline-block;font-size:.85rem;color:#f5d2c6;margin-top:.35rem}
+.grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(340px,1.25fr) 330px;gap:18px;align-items:start}
+.panel{background:var(--paper);border-radius:var(--r);box-shadow:0 1px 0 rgba(0,0,0,.25),0 14px 30px -18px rgba(0,0,0,.6);padding:18px;position:relative}
+.panel::before{content:"";position:absolute;top:-7px;left:26px;width:64px;height:16px;background:rgba(232,185,49,.75);transform:rotate(-3deg);border-radius:2px}
+.panel h2{font:700 1.15rem/1.2 var(--display);margin:0 0 .25rem;letter-spacing:-.01em}
+.panel .sub{margin:0 0 .9rem;color:var(--muted);font-size:.88rem}
+textarea{width:100%;min-height:250px;resize:vertical;border:1.5px solid var(--line);border-radius:10px;background:#fbf8f1;padding:.75rem;font:13px/1.55 var(--mono);color:var(--ink)}
+textarea:focus{border-color:var(--ink);outline:none;box-shadow:0 0 0 3px rgba(232,185,49,.6)}
+.row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.meta{font:12px var(--mono);color:var(--muted);margin:.4rem 0 .8rem}
+.btn{appearance:none;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font:600 .9rem var(--body);padding:.5rem .85rem;border-radius:9px;cursor:pointer;transition:transform .12s,background .15s,box-shadow .15s}
+.btn:hover{background:var(--paper-2)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--tomato);border-color:var(--tomato);color:#fff;box-shadow:0 3px 0 var(--tomato-ink)}
+.btn.primary:hover{background:#c63f19}
+.btn.primary:active{box-shadow:0 1px 0 var(--tomato-ink);transform:translateY(2px)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.small{padding:.3rem .6rem;font-size:.8rem;border-width:1px}
+kbd{font:500 .72rem var(--mono);background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.15);border-bottom-width:2px;border-radius:5px;padding:.05rem .35rem}
+.btn.primary kbd{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35);color:#fff}
+fieldset{border:0;padding:0;margin:1rem 0 0}
+legend,.lbl{font:600 .78rem var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);margin-bottom:.4rem;display:block}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+.settings label{font-size:.85rem;color:var(--ink-2);display:flex;flex-direction:column;gap:.25rem}
+input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:.4rem .5rem;font:14px var(--mono);background:#fbf8f1}
+input[type=range]{width:100%;accent-color:var(--tomato)}
+.styles{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+.styles input{position:absolute;opacity:0;pointer-events:none}
+.styles label{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.45rem .2rem;border:1.5px solid var(--line);border-radius:9px;cursor:pointer;font-size:.72rem;color:var(--ink-2);transition:border-color .15s,transform .15s}
+.styles label:hover{transform:translateY(-1px)}
+.styles input:checked+label{border-color:var(--ink);background:#fff}
+.styles input:focus-visible+label{outline:3px solid var(--mustard)}
+.sw{width:100%;height:26px;border-radius:5px;background:#33372e;display:grid;place-items:center;font:900 13px/1 Impact,"Arial Black",sans-serif}
+.go{margin-top:1.1rem;width:100%;justify-content:center;display:flex;gap:.6rem;align-items:center;font-size:1rem;padding:.75rem}
+/* moments */
+.timeline{position:relative;height:44px;border-radius:9px;background:repeating-linear-gradient(90deg,var(--paper-2) 0 2px,transparent 2px 8px),#fbf8f1;border:1.5px solid var(--line);margin:.3rem 0 .3rem;overflow:hidden}
+.timeline .win{position:absolute;top:6px;bottom:6px;border-radius:6px;background:rgba(217,72,31,.25);border:1.5px solid var(--tomato);cursor:pointer;transition:background .15s,top .15s,bottom .15s;font:600 11px var(--mono);color:var(--tomato-ink);display:flex;align-items:center;padding-left:5px}
+.timeline .win:hover,.timeline .win.on{background:var(--mustard);border-color:var(--ink);color:var(--ink);top:3px;bottom:3px;z-index:2}
+.ticks{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted);margin-bottom:.9rem}
+.list{display:flex;flex-direction:column;gap:.6rem;max-height:640px;overflow:auto;padding:2px}
+.clip{display:grid;grid-template-columns:34px 1fr;gap:.7rem;padding:.75rem .8rem;border:1.5px solid var(--line);border-radius:11px;background:#fbf8f1;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;text-align:left;width:100%;font:inherit;color:inherit}
+.clip:hover{border-color:var(--ink-2);transform:translateX(2px)}
+.clip.on{border-color:var(--ink);background:#fff;box-shadow:4px 4px 0 var(--mustard)}
+.rank{font:800 1.5rem/1 var(--display);color:var(--tomato)}
+.clip h3{margin:0;font:600 .98rem/1.3 var(--body)}
+.clip .when{font:12px var(--mono);color:var(--muted);margin:.15rem 0 .4rem}
+.bar{height:6px;border-radius:9px;background:var(--paper-2);overflow:hidden;margin:.15rem 0 .45rem}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mustard),var(--tomato));border-radius:9px;transform-origin:left;animation:grow .6s ease-out both}
+@keyframes grow{from{transform:scaleX(0)}}
+.why{display:flex;flex-wrap:wrap;gap:.3rem}
+.why span{font-size:.72rem;padding:.12rem .45rem;border-radius:999px;background:var(--paper-2);color:var(--ink-2)}
+.why span.neg{background:#f6d9cf;color:var(--tomato-ink)}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:1.6rem 1.2rem;text-align:center;color:var(--ink-2)}
+.empty svg{width:64px;height:64px;margin-bottom:.4rem}
+.empty b{display:block;font:700 1.05rem var(--display);color:var(--ink);margin-bottom:.25rem}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;padding-top:.9rem;border-top:1px dashed var(--line)}
+/* phone */
+.phone-wrap{position:sticky;top:16px}
+.phone{width:100%;max-width:290px;margin:0 auto;aspect-ratio:9/16;border-radius:30px;background:#111;padding:10px;box-shadow:0 0 0 2px #2d2d2d,0 20px 40px -18px rgba(0,0,0,.8)}
+.screen{position:relative;height:100%;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 30% 20%,#3d6b56,transparent 60%),radial-gradient(circle at 80% 85%,#7a3a22,transparent 55%),#1b2a24;color:#fff}
+.screen::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.13'/></svg>");pointer-events:none;mix-blend-mode:overlay}
+.screen .hook{position:absolute;top:13%;left:8%;right:8%;font:800 1.05rem/1.2 var(--display);text-align:center;background:rgba(0,0,0,.55);padding:.45rem .6rem;border-radius:8px}
+.screen .cap{position:absolute;left:6%;right:6%;bottom:17%;text-align:center;font:900 1.45rem/1.1 "Arial Black",Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em;transition:transform .12s}
+.screen .cap.pop{animation:pop .22s ease-out}
+@keyframes pop{from{transform:scale(.86);opacity:.4}}
+.cap.bold_yellow{color:#ffee00;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:0 3px 0 #000}
+.cap.white_outline{color:#fff;font-family:Arial,sans-serif;-webkit-text-stroke:2.5px #000;paint-order:stroke fill;text-shadow:1px 2px 2px rgba(0,0,0,.6)}
+.cap.neon_pink{color:#ff66ff;font-family:Impact,"Arial Black",sans-serif;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:0 0 14px rgba(255,102,255,.7)}
+.cap.clean_white{color:#fff;font:700 1.3rem/1.15 Helvetica,Arial,sans-serif;text-transform:none;-webkit-text-stroke:1.5px #202020;paint-order:stroke fill}
+.screen .prog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.2)}
+.screen .prog i{display:block;height:100%;width:0;background:var(--tomato)}
+.screen .time{position:absolute;top:10px;right:12px;font:11px var(--mono);opacity:.85}
+.screen .idle{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:2rem;font-size:.9rem;opacity:.85}
+.controls{display:flex;justify-content:center;gap:.5rem;margin:.8rem 0 .2rem}
+.controls .btn{background:var(--paper);border-color:var(--paper)}
+.controls .btn:hover{background:#fff}
+.tip{color:var(--paper);opacity:.8;text-align:center;font-size:.8rem}
+.render-out video{width:100%;max-height:440px;background:#000;border-radius:12px;margin-top:.6rem}
+.render-out p{color:var(--paper);font-size:.85rem}
+footer{color:var(--paper);opacity:.85;font-size:.85rem;margin-top:28px;display:flex;gap:1rem;flex-wrap:wrap;justify-content:space-between}
+footer code{font-family:var(--mono);background:rgba(0,0,0,.25);padding:.1rem .35rem;border-radius:5px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,120%);background:var(--ink);color:var(--paper);padding:.6rem 1rem;border-radius:10px;font-size:.9rem;transition:transform .25s;z-index:20}
+.toast.show{transform:translate(-50%,0)}
+dialog{border:0;border-radius:14px;padding:1.2rem 1.4rem;background:var(--paper);max-width:380px}
+dialog::backdrop{background:rgba(10,25,18,.6)}
+dialog h3{margin:0 0 .6rem;font:700 1.15rem var(--display)}
+dialog dl{display:grid;grid-template-columns:auto 1fr;gap:.45rem .9rem;margin:0 0 1rem}
+dialog dd{margin:0;color:var(--ink-2)}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width:1100px){.grid{grid-template-columns:1fr 1fr}.phone-col{grid-column:1/-1}.phone{max-width:260px}}
+@media (max-width:720px){.grid{grid-template-columns:1fr}.settings{grid-template-columns:1fr 1fr}.list{max-height:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg class="mark" viewBox="0 0 42 42" aria-hidden="true"><rect width="42" height="42" rx="10" fill="#f3eee2"/><rect x="14" y="7" width="14" height="28" rx="3" fill="#1d1f1a"/><path d="M6 17h30" stroke="#d9481f" stroke-width="3" stroke-dasharray="4 3"/><circle cx="21" cy="29" r="2" fill="#e8b931"/></svg>
+    <div class="brand"><b>Clip Studio</b><span>the friendly face of yt-shorts-autoposter</span></div>
+    <span class="mode" id="mode" title="Where the analysis runs">browser demo · offline heuristic</span>
+  </header>
+
+  <p class="lede">Paste a transcript from a long video and I'll mark the moments most likely to work as <strong>YouTube Shorts</strong>, tell you why each one scored the way it did, and preview the burned-in captions.
+    <span class="legal">Only use videos you own or have the rights to reuse.</span></p>
+
+  <main class="grid">
+    <section class="panel" aria-labelledby="t-h">
+      <h2 id="t-h">1. Transcript</h2>
+      <p class="sub">YouTube transcript JSON, an .srt file, <code>0:12 text</code> lines, or plain prose all work.</p>
+      <label for="tx" class="lbl" style="position:absolute;left:-9999px">Transcript</label>
+      <textarea id="tx" spellcheck="false" placeholder="0:00 Stop scrolling. This one mistake is killing your focus.&#10;0:04 Nobody talks about it, but once you see it...&#10;&#10;…or paste plain text and I'll time it at a natural speaking pace."></textarea>
+      <div class="meta" id="txmeta">empty</div>
+      <div class="row">
+        <button class="btn small" id="sample" type="button">Use the sample talk</button>
+        <button class="btn small" id="clear" type="button">Clear</button>
+        <label class="btn small" for="file" style="cursor:pointer">Open file…</label>
+        <input id="file" type="file" accept=".json,.srt,.txt,.vtt" hidden>
+      </div>
+      <div class="settings">
+        <label>Shortest clip (s)<input type="number" id="minc" value="15" min="5" max="58"></label>
+        <label>Longest clip (s)<input type="number" id="maxc" value="59" min="10" max="60"></label>
+        <label style="grid-column:1/-1">How many Shorts, at most: <b id="nval">5</b><input type="range" id="nmax" min="1" max="10" value="5" aria-describedby="nval"></label>
+      </div>
+      <fieldset>
+        <legend>Caption style</legend>
+        <div class="styles" role="radiogroup">
+          <input type="radio" name="cs" id="cs1" value="bold_yellow" checked><label for="cs1"><span class="sw" style="color:#ffee00;-webkit-text-stroke:1px #000">ABC</span>Bold yellow</label>
+          <input type="radio" name="cs" id="cs2" value="white_outline"><label for="cs2"><span class="sw" style="color:#fff;font-family:Arial;-webkit-text-stroke:1px #000">ABC</span>White</label>
+          <input type="radio" name="cs" id="cs3" value="neon_pink"><label for="cs3"><span class="sw" style="color:#ff66ff;font-family:Impact">ABC</span>Neon</label>
+          <input type="radio" name="cs" id="cs4" value="clean_white"><label for="cs4"><span class="sw" style="color:#fff;font:700 13px Helvetica,Arial">Abc</span>Clean</label>
+        </div>
+      </fieldset>
+      <button class="btn primary go" id="go" type="button">Find the moments <kbd>Ctrl</kbd><kbd>↵</kbd></button>
+    </section>
+
+    <section class="panel" aria-labelledby="m-h">
+      <h2 id="m-h">2. Moments worth cutting</h2>
+      <p class="sub" id="msub">Ranked by how hooky, punchy and Shorts-sized each window is.</p>
+      <div id="tlwrap" hidden>
+        <div class="timeline" id="tl" aria-label="Where each moment sits in the video"></div>
+        <div class="ticks" id="ticks"></div>
+      </div>
+      <div class="list" id="list" aria-live="polite">
+        <div class="empty">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="14" width="48" height="36" rx="5" fill="none" stroke="#1d1f1a" stroke-width="2.5"/><path d="M8 24h48" stroke="#1d1f1a" stroke-width="2.5"/><path d="M20 14l-4 10M32 14l-4 10M44 14l-4 10" stroke="#d9481f" stroke-width="2.5"/><circle cx="32" cy="37" r="5" fill="#e8b931"/></svg>
+          <b>Nothing on the cutting mat yet</b>
+          Paste a transcript, or tap <em>Use the sample talk</em>: it's a two-minute piece about focus with a few good hooks in it.
+        </div>
+      </div>
+      <div class="actions" id="actions" hidden>
+        <button class="btn small" id="dl" type="button">Download clips.json</button>
+        <button class="btn small" id="cli" type="button">Copy render command</button>
+        <button class="btn small" id="render" type="button" hidden>Render selected as MP4</button>
+      </div>
+    </section>
+
+    <aside class="phone-col" aria-labelledby="p-h">
+      <div class="phone-wrap">
+        <h2 id="p-h" style="position:absolute;left:-9999px">3. Preview</h2>
+        <div class="phone"><div class="screen" id="screen">
+          <div class="idle" id="idle">Pick a moment and I'll play its captions here, the way they'd be burned into the Short.</div>
+          <div class="hook" id="hook" hidden></div>
+          <div class="cap" id="cap"></div>
+          <span class="time" id="ptime"></span>
+          <div class="prog"><i id="pbar"></i></div>
+        </div></div>
+        <div class="controls">
+          <button class="btn small" id="prev" type="button" aria-label="Previous moment">‹ <kbd>J</kbd></button>
+          <button class="btn small" id="play" type="button" aria-label="Play or pause preview">Play <kbd>Space</kbd></button>
+          <button class="btn small" id="next" type="button" aria-label="Next moment"><kbd>K</kbd> ›</button>
+        </div>
+        <p class="tip">Press <kbd style="color:var(--ink);background:var(--paper)">?</kbd> for all shortcuts</p>
+        <div class="render-out" id="rout"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>Same scoring as the Python CLI (<code>shorts_bot/analyze.py</code>). Add a free Groq or Gemini key locally for LLM picks.</span>
+    <span><a href="https://github.com/Dave-4u/yt-shorts-autoposter">Source on GitHub</a> · built by Dave Adegboro</span>
+  </footer>
+</div>
+
+<dialog id="help" aria-labelledby="help-h">
+  <h3 id="help-h">Keyboard shortcuts</h3>
+  <dl>
+    <dt><kbd>Ctrl</kbd> <kbd>↵</kbd></dt><dd>Find moments</dd>
+    <dt><kbd>Space</kbd></dt><dd>Play / pause the preview</dd>
+    <dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>Previous / next moment</dd>
+    <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Switch caption style</dd>
+    <dt><kbd>?</kbd></dt><dd>This list</dd>
+  </dl>
+  <form method="dialog"><button class="btn small">Got it</button></form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="engine.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const E = window.ClipEngine;
+const state = { segs: [], clips: [], sel: -1, playing: false, t0: 0, elapsed: 0, raf: 0, api: null, lastChunk: -1 };
+const fmt = (s) => { s = Math.max(0, s); const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${String(r).padStart(2, "0")}`; };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 1800); }
+const style = () => document.querySelector('input[name=cs]:checked').value;
+
+function updateMeta() {
+  const raw = $("#tx").value;
+  try {
+    state.segs = E.parseTranscript(raw);
+    if (!state.segs.length) { $("#txmeta").textContent = raw.trim() ? "couldn't find any lines yet" : "empty"; return; }
+    const last = state.segs[state.segs.length - 1];
+    const words = state.segs.reduce((a, s) => a + s.text.split(/\s+/).length, 0);
+    $("#txmeta").textContent = `${state.segs.length} lines · ${words} words · ~${fmt(last.start + last.duration)} long`;
+  } catch (e) { state.segs = []; $("#txmeta").textContent = "that JSON didn't parse, check the brackets"; }
+}
+$("#tx").addEventListener("input", updateMeta);
+$("#nmax").addEventListener("input", (e) => $("#nval").textContent = e.target.value);
+$("#sample").onclick = async () => {
+  const data = await fetch("sample_transcript.json").then((r) => r.json());
+  $("#tx").value = data.map((d) => `${fmt(d.start)} ${d.text}`).join("\n"); updateMeta(); toast("Loaded a 2-minute talk about focus"); $("#go").focus();
+};
+$("#clear").onclick = () => { $("#tx").value = ""; updateMeta(); $("#tx").focus(); };
+$("#file").onchange = async (e) => { const f = e.target.files[0]; if (!f) return; $("#tx").value = await f.text(); updateMeta(); toast(`Opened ${f.name}`); };
+
+async function findMoments() {
+  updateMeta();
+  if (!state.segs.length) { toast("Paste a transcript first (or use the sample)"); $("#tx").focus(); return; }
+  let minc = +$("#minc").value || 15, maxc = +$("#maxc").value || 59;
+  if (minc >= maxc) { [minc, maxc] = [Math.min(minc, maxc), Math.max(minc, maxc) + 5]; $("#minc").value = minc; $("#maxc").value = maxc; }
+  const opts = { minClip: minc, maxClip: maxc, maxShorts: +$("#nmax").value };
+  const go = $("#go"); go.disabled = true; go.innerHTML = '<span class="spin"></span> Reading the transcript…';
+  let clips;
+  try {
+    if (state.api) {
+      const r = await fetch("/api/analyze", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ segments: state.segs, ...opts }) });
+      const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText);
+      clips = j.clips.map((c) => ({ ...c, why: c.why || E.scoreDetail(c.text, c.end - c.start).why }));
+      $("#msub").textContent = `Picked by ${j.engine}. Ranked best first.`;
+    } else {
+      await new Promise((r) => setTimeout(r, 380)); // let the spinner breathe
+      clips = E.analyze(state.segs, opts);
+      $("#msub").textContent = "Picked by the offline heuristic. Ranked best first.";
+    }
+  } catch (e) { toast("Analysis failed: " + e.message); clips = E.analyze(state.segs, opts); }
+  go.disabled = false; go.innerHTML = 'Find the moments <kbd>Ctrl</kbd><kbd>↵</kbd>';
+  state.clips = clips; renderList(); if (clips.length) select(0, false);
+}
+$("#go").onclick = findMoments;
+
+function renderList() {
+  const list = $("#list"), clips = state.clips;
+  if (!clips.length) {
+    list.innerHTML = `<div class="empty"><b>No Shorts-sized moments found</b>Try a lower "shortest clip" or a longer transcript. Windows need at least ${$("#minc").value}s of talking.</div>`;
+    $("#tlwrap").hidden = true; $("#actions").hidden = true; return;
+  }
+  const top = Math.max(...clips.map((c) => c.score), 1);
+  list.innerHTML = clips.map((c, i) => `
+    <button class="clip" data-i="${i}" type="button" aria-label="Moment ${i + 1}: ${esc(c.title)}">
+      <span class="rank">${i + 1}</span>
+      <span><h3>${esc(c.title)}</h3>
+      <div class="when">${fmt(c.start)} → ${fmt(c.end)} · ${Math.round(c.end - c.start)}s · score ${c.score}</div>
+      <div class="bar"><i style="width:${Math.max(6, (c.score / top) * 100)}%;animation-delay:${i * 60}ms"></i></div>
+      <div class="why">${(c.why || []).map((w) => `<span class="${w.pts < 0 ? "neg" : ""}">${esc(w.label)} ${w.pts > 0 ? "+" : ""}${w.pts}</span>`).join("")}</div></span>
+    </button>`).join("");
+  list.querySelectorAll(".clip").forEach((b) => b.onclick = () => select(+b.dataset.i, true));
+  const last = state.segs[state.segs.length - 1], total = Math.max(last.start + last.duration, ...clips.map((c) => c.end));
+  $("#tl").innerHTML = clips.map((c, i) => `<div class="win" data-i="${i}" style="left:${(c.start / total) * 100}%;width:${((c.end - c.start) / total) * 100}%" title="#${i + 1} ${esc(c.title)}">${i + 1}</div>`).join("");
+  $("#tl").querySelectorAll(".win").forEach((w) => w.onclick = () => select(+w.dataset.i, true));
+  $("#ticks").innerHTML = [0, .25, .5, .75, 1].map((f) => `<span>${fmt(total * f)}</span>`).join("");
+  $("#tlwrap").hidden = false; $("#actions").hidden = false;
+}
+
+function select(i, autoplay) {
+  if (!state.clips.length) return;
+  state.sel = (i + state.clips.length) % state.clips.length;
+  document.querySelectorAll(".clip,.win").forEach((el) => el.classList.toggle("on", +el.dataset.i === state.sel));
+  const el = document.querySelector(`.clip[data-i="${state.sel}"]`); el && el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  const c = state.clips[state.sel];
+  $("#idle").hidden = true; $("#hook").hidden = false; $("#hook").textContent = c.hook;
+  state.elapsed = 0; state.lastChunk = -1; drawFrame();
+  if (autoplay) play(true); else pause();
+}
+
+function drawFrame() {
+  const c = state.clips[state.sel]; if (!c) return;
+  const dur = c.end - c.start, chunks = E.chunkWords(c.text, 4);
+  const k = Math.min(chunks.length - 1, Math.floor((state.elapsed / dur) * chunks.length));
+  const cap = $("#cap"); cap.className = "cap " + style();
+  if (k !== state.lastChunk) { cap.textContent = chunks[k] || ""; cap.classList.remove("pop"); void cap.offsetWidth; cap.classList.add("pop"); state.lastChunk = k; }
+  $("#pbar").style.width = `${(state.elapsed / dur) * 100}%`;
+  $("#ptime").textContent = `${fmt(state.elapsed)} / ${fmt(dur)}`;
+}
+function tick(ts) {
+  if (!state.playing) return;
+  const c = state.clips[state.sel]; const dur = c.end - c.start;
+  state.elapsed = Math.min(dur, (ts - state.t0) / 1000);
+  drawFrame();
+  if (state.elapsed >= dur) { pause(); return; }
+  state.raf = requestAnimationFrame(tick);
+}
+function play(restart) {
+  if (state.sel < 0) { if (state.clips.length) select(0, true); else toast("Find some moments first"); return; }
+  const c = state.clips[state.sel];
+  if (restart || state.elapsed >= c.end - c.start) state.elapsed = 0;
+  state.playing = true; state.t0 = performance.now() - state.elapsed * 1000;
+  $("#play").innerHTML = 'Pause <kbd>Space</kbd>'; cancelAnimationFrame(state.raf); state.raf = requestAnimationFrame(tick);
+}
+function pause() { state.playing = false; cancelAnimationFrame(state.raf); $("#play").innerHTML = 'Play <kbd>Space</kbd>'; }
+$("#play").onclick = () => state.playing ? pause() : play(false);
+$("#prev").onclick = () => select(state.sel - 1, true);
+$("#next").onclick = () => select(state.sel + 1, true);
+document.querySelectorAll("input[name=cs]").forEach((r) => r.onchange = () => { state.lastChunk = -1; drawFrame(); });
+
+function clipsJson() { return JSON.stringify(state.clips.map(({ why, ...c }) => c), null, 2); }
+$("#dl").onclick = () => {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([clipsJson()], { type: "application/json" }));
+  a.download = "clips.json"; a.click(); URL.revokeObjectURL(a.href); toast("Saved clips.json");
+};
+$("#cli").onclick = async () => {
+  const cmd = `python -m shorts_bot render --clips clips.json --source your_video.mp4 --caption-style ${style()}`;
+  try { await navigator.clipboard.writeText(cmd); toast("Copied. Run it next to clips.json"); } catch { prompt("Copy this command:", cmd); }
+};
+$("#render").onclick = async () => {
+  const c = state.clips[state.sel]; if (!c) return toast("Pick a moment first");
+  const b = $("#render"); b.disabled = true; b.innerHTML = '<span class="spin"></span> Rendering, about a minute…';
+  try {
+    const r = await fetch("/api/render", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clip: { ...c, why: undefined }, segments: state.segs, caption_style: style() }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText);
+    $("#rout").innerHTML = `<video controls src="${j.url}"></video><p>Rendered on a test pattern (dry run, nothing uploaded). <a href="${j.url}" download>Download MP4</a></p>`;
+    toast("Rendered");
+  } catch (e) { toast("Render failed: " + e.message); }
+  b.disabled = false; b.textContent = "Render selected as MP4";
+};
+
+document.addEventListener("keydown", (e) => {
+  const typing = /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName) && e.target.type !== "radio" && e.target.type !== "range";
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); findMoments(); return; }
+  if (typing || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === " " && e.target.tagName !== "BUTTON") { e.preventDefault(); state.playing ? pause() : play(false); }
+  else if (e.key === "j" || e.key === "J") select(state.sel - 1, true);
+  else if (e.key === "k" || e.key === "K") select(state.sel + 1, true);
+  else if (/^[1-4]$/.test(e.key)) { const r = document.querySelectorAll("input[name=cs]")[+e.key - 1]; r.checked = true; r.onchange(); toast(r.nextElementSibling.textContent.replace("ABC", "").replace("Abc", "") + " captions"); }
+  else if (e.key === "?") $("#help").showModal();
+});
+
+// Local engine? (python -m shorts_bot web)
+fetch("/api/health").then((r) => r.ok ? r.json() : null).then((j) => {
+  if (!j || !j.ok) return;
+  state.api = j; const m = $("#mode"); m.classList.add("live"); m.textContent = `local engine · ${j.engine}`;
+  $("#render").hidden = false;
+}).catch(() => {});
+updateMeta();
+</script>
+</body>
+</html>

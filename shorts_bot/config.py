@@ -27,7 +27,7 @@ GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/opena
 CAPTION_STYLES = {
     "bold_yellow": {
         "fontname": "Arial Black",
-        "fontsize": 72,
+        "fontsize": 112,
         "primary": "&H0000FFFF",  # yellow (ASS BGR)
         "outline": "&H00000000",
         "outline_width": 4,
@@ -38,7 +38,7 @@ CAPTION_STYLES = {
     },
     "white_outline": {
         "fontname": "Arial",
-        "fontsize": 68,
+        "fontsize": 104,
         "primary": "&H00FFFFFF",
         "outline": "&H00000000",
         "outline_width": 5,
@@ -49,7 +49,7 @@ CAPTION_STYLES = {
     },
     "neon_pink": {
         "fontname": "Impact",
-        "fontsize": 70,
+        "fontsize": 110,
         "primary": "&H00FF66FF",
         "outline": "&H00000000",
         "outline_width": 4,
@@ -60,7 +60,7 @@ CAPTION_STYLES = {
     },
     "clean_white": {
         "fontname": "Helvetica",
-        "fontsize": 64,
+        "fontsize": 96,
         "primary": "&H00FFFFFF",
         "outline": "&H00202020",
         "outline_width": 3,

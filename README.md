@@ -1,8 +1,43 @@
 # yt-shorts-autoposter
 
-**Turn long-form videos you own into captioned YouTube Shorts** — discover (optional) → download → AI/heuristic viral moments → 9:16 burn-in captions → upload.
+**Turn long-form videos you own into captioned YouTube Shorts.** It finds the moments worth cutting, reframes them to 9:16, burns in punchy captions, and (only if you ask) uploads them as private Shorts.
 
-Independent open-source pipeline built with **yt-dlp + ffmpeg + free LLMs + YouTube Data API v3**.  
+I made this for creators, teachers, and small channels who already have long videos and don't have hours to scrub through them for clips. It runs on free tools: yt-dlp, ffmpeg, the free Groq or Gemini tiers (optional), and the YouTube Data API.
+
+**Try the browser demo:** https://dave-4u.github.io/yt-shorts-autoposter/ (no install, nothing leaves your browser)
+
+![Clip Studio: transcript, ranked moments, and a caption preview](docs/img/screenshot.png)
+
+## Clip Studio (the friendly part)
+
+`./run.sh` opens **Clip Studio**, a small local web UI on top of the pipeline:
+
+- Paste a transcript (YouTube JSON, .srt, `0:12 text` lines, or plain prose), or load the sample talk
+- See every candidate moment on a timeline, ranked, with the reasons behind each score ("asks 2 questions +5", "sweet-spot length +4"…)
+- Preview the burned-in captions on a phone frame in all four caption styles
+- Download `clips.json` for the CLI, copy the render command, or render the selected clip to a real MP4 (locally, on a test pattern; the web UI never uploads)
+- Keyboard: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> analyze, <kbd>Space</kbd> play, <kbd>J</kbd>/<kbd>K</kbd> move between moments, <kbd>1</kbd>-<kbd>4</kbd> caption style, <kbd>?</kbd> help
+
+| Local engine rendering a clip | On a phone |
+|---|---|
+| ![Local render](docs/img/screenshot-local-render.png) | ![Mobile](docs/img/screenshot-mobile.png) |
+
+The browser demo runs `docs/engine.js`, a port of the Python heuristic; `tests/test_engine_parity.py` checks both pick exactly the same clips.
+
+## Quickstart
+
+```bash
+sudo apt-get install -y ffmpeg          # needed for rendering
+git clone https://github.com/Dave-4u/yt-shorts-autoposter.git
+cd yt-shorts-autoposter
+./run.sh            # Clip Studio on http://127.0.0.1:8765
+./run.sh demo       # offline: renders 2 Shorts from a synthetic video, uploads nothing
+./run.sh test       # 10 tests
+```
+
+Uploading is never the default. It only happens with `python -m shorts_bot run` (or `upload-only`), needs your own Google OAuth client, and defaults to **private** visibility. Add `--dry-run` to rehearse.
+
+Independent open-source pipeline built with **yt-dlp + ffmpeg + free LLMs + YouTube Data API v3**.
 It is **not** affiliated with Vugola or any closed Shorts SaaS, and it does **not** scrape third-party product APIs.
 
 ---
@@ -195,13 +230,15 @@ Set `CAPTION_STYLE` or `--caption-style`:
 yt-shorts-autoposter/
 ├── shorts_bot/
 │   ├── __main__.py
-│   ├── cli.py          # discover | fetch | analyze | render | upload-only | clip | demo | run
+│   ├── cli.py          # discover | fetch | analyze | render | upload-only | clip | demo | web | run
+│   ├── web.py          # Clip Studio local server (stdlib only)
 │   ├── config.py
 │   ├── discover.py
 │   ├── fetch.py
 │   ├── analyze.py
 │   ├── render.py
 │   └── upload.py
+├── docs/               # Clip Studio page (also the GitHub Pages demo) + engine.js
 ├── samples/
 │   └── sample_transcript.json
 ├── tests/
@@ -235,6 +272,18 @@ Cron example (daily, private uploads of *your* latest long-form — wire your ow
 ```
 
 ---
+
+## Tech stack
+
+Python 3.10+ · yt-dlp · youtube-transcript-api · ffmpeg + libass · OpenAI-compatible client (Groq / Gemini) · Google API client · vanilla HTML/CSS/JS for Clip Studio
+
+## Roadmap
+
+- [ ] Face-aware reframing instead of a center crop
+- [ ] Word-level timestamps (Whisper) so captions land on the exact word
+- [ ] Edit a clip's in/out points by dragging it on the timeline
+- [ ] Thumbnail frame picker and auto title suggestions per Short
+- [ ] Queue view for scheduled uploads
 
 ## License
 

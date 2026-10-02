@@ -183,6 +183,14 @@ def cmd_clip(args: argparse.Namespace) -> int:
     return 0 if rendered else 1
 
 
+def cmd_web(args: argparse.Namespace) -> int:
+    from shorts_bot.web import serve
+
+    print(LEGAL_BANNER)
+    serve(args.host, args.port)
+    return 0
+
+
 def cmd_demo(args: argparse.Namespace) -> int:
     """Offline demo: synthetic video + sample transcript → rendered Shorts."""
     cfg = _apply_overrides(Config.from_env(), args)
@@ -345,6 +353,12 @@ def build_parser() -> argparse.ArgumentParser:
     demo = sub.add_parser("demo", help="Offline demo with synthetic video")
     add_common(demo)
     demo.set_defaults(func=cmd_demo)
+
+    # web
+    w = sub.add_parser("web", help="Clip Studio: local web UI (never uploads)")
+    w.add_argument("--host", default="127.0.0.1")
+    w.add_argument("--port", type=int, default=8765)
+    w.set_defaults(func=cmd_web)
 
     # run
     run = sub.add_parser("run", help="Full pipeline discover→…→upload")

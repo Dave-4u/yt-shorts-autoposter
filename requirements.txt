@@ -1,19 +1,19 @@
-# Core
-python-dotenv>=1.0.0
-requests>=2.31.0
-yt-dlp>=2024.8.0
-youtube-transcript-api>=0.6.2
+# Core (pinned to versions tested on 2026-10-02; yt-dlp moves fast, bump it if YouTube downloads break)
+python-dotenv==1.2.4
+requests==2.34.2
+yt-dlp==2026.8.19
+youtube-transcript-api==1.2.4
 
 # LLM — openai client also talks to Groq + Gemini (OpenAI-compatible free tiers)
-openai>=1.40.0
-anthropic>=0.34.0
+openai==3.23.0
+anthropic==1.11.0
 # Optional native Gemini SDK (fallback if OpenAI-compatible path fails)
 # google-generativeai>=0.8.0
 
 # YouTube upload (OAuth — free personal Google Cloud project)
-google-api-python-client>=2.140.0
-google-auth-oauthlib>=1.2.0
-google-auth-httplib2>=0.2.0
+google-api-python-client==2.201.0
+google-auth-oauthlib==1.5.0
+google-auth-httplib2==0.4.4
 
 # Optional local transcription fallback
 # openai-whisper>=20231117
