@@ -47,3 +47,31 @@ def test_resolve_llm_none_without_keys():
     cfg = Config()
     assert cfg.resolve_llm() is None
     assert cfg.has_llm is False
+
+
+def test_default_llm_ids_not_retired():
+    cfg = Config()
+    assert cfg.groq_model not in ("llama-3.3-70b-versatile", "llama-3.1-8b-instant")  # Groq retired 2026-08-16
+    assert not cfg.gemini_model.startswith("gemini-2.0")                              # shut down 2026-06-01
+
+
+def test_gpt_oss_gets_low_reasoning(monkeypatch):
+    import sys, types
+    from shorts_bot import analyze
+    seen = {}
+
+    class Fake:
+        def __init__(self, **kw):
+            self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=self.create))
+
+        def create(self, **kw):
+            seen.update(kw)
+            msg = types.SimpleNamespace(content="[]")
+            return types.SimpleNamespace(choices=[types.SimpleNamespace(message=msg)])
+
+    monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(OpenAI=Fake))
+    analyze._chat_completions(api_key="k", base_url="u", model="openai/gpt-oss-120b", prompt="p")
+    assert seen["extra_body"] == {"reasoning_effort": "low"}
+    seen.clear()
+    analyze._chat_completions(api_key="k", base_url="u", model="gemini-2.5-flash", prompt="p")
+    assert "extra_body" not in seen

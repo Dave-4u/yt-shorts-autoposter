@@ -220,6 +220,8 @@ def _chat_completions(
             {"role": "user", "content": prompt},
         ],
         temperature=0.4,
+        # gpt-oss (Groq default) is a reasoning model: keep the thinking short
+        **({"extra_body": {"reasoning_effort": "low"}} if model.startswith("openai/gpt-oss") else {}),
     )
     return resp.choices[0].message.content or "[]"
 

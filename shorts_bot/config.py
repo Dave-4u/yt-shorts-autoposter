@@ -83,8 +83,8 @@ class Config:
     # Endpoint / model overrides
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4o-mini"
-    groq_model: str = "llama-3.3-70b-versatile"
-    gemini_model: str = "gemini-2.0-flash"
+    groq_model: str = "openai/gpt-oss-120b"  # llama-3.3-70b-versatile retired for free/dev tiers 2026-08-16
+    gemini_model: str = "gemini-2.5-flash"  # gemini-2.0-flash shut down 2026-06-01
     anthropic_model: str = "claude-3-5-haiku-latest"
     google_client_secrets: str = "client_secrets.json"
     channel_id: str = ""
@@ -112,9 +112,9 @@ class Config:
             openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             groq_model=os.getenv(
-                "GROQ_MODEL", "llama-3.3-70b-versatile"
+                "GROQ_MODEL", "openai/gpt-oss-120b"
             ),
-            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
             anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-latest"),
             google_client_secrets=os.getenv(
                 "GOOGLE_CLIENT_SECRETS", "client_secrets.json"

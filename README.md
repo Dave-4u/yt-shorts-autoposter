@@ -78,10 +78,10 @@ Preference order in code:
 
 1. **`GROQ_API_KEY`** — [console.groq.com/keys](https://console.groq.com/keys)  
    OpenAI-compatible: `https://api.groq.com/openai/v1`  
-   Default model: `llama-3.3-70b-versatile` (or set `GROQ_MODEL=llama-3.1-8b-instant`)
+   Default model: `openai/gpt-oss-120b` (or set `GROQ_MODEL=openai/gpt-oss-20b` for faster). Groq retired the Llama 3.x ids for free accounts on 2026-08-16.
 2. **`GEMINI_API_KEY`** — [aistudio.google.com/apikey](https://aistudio.google.com/apikey)  
    OpenAI-compatible endpoint, or optional `google-generativeai`  
-   Default model: `gemini-2.0-flash`
+   Default model: `gemini-2.5-flash` (2.0 Flash was shut down on 2026-06-01)
 3. `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` — paid optional
 4. **No key** → offline **heuristic** (hook words, questions, length sweet-spot)
 
@@ -173,9 +173,9 @@ Copy `.env.example` → `.env`:
 | Variable | Purpose | Free? |
 |----------|---------|-------|
 | `GROQ_API_KEY` | Preferred LLM (OpenAI-compatible) | Yes — Groq free tier |
-| `GROQ_MODEL` | e.g. `llama-3.3-70b-versatile` | — |
+| `GROQ_MODEL` | e.g. `openai/gpt-oss-120b` | — |
 | `GEMINI_API_KEY` | Alternate free LLM | Yes — AI Studio |
-| `GEMINI_MODEL` | e.g. `gemini-2.0-flash` | — |
+| `GEMINI_MODEL` | e.g. `gemini-2.5-flash` | — |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Paid LLM fallbacks | Paid |
 | `YOUTUBE_API_KEY` | Discover/search only | Free quota (~10k/day) |
 | `GOOGLE_CLIENT_SECRETS` | OAuth desktop JSON path | Free personal project |
